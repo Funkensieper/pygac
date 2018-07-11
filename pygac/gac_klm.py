@@ -487,6 +487,8 @@ class KLMReader(GACReader):
                            }
 
     def read(self, filename):
+        super(KLMReader, self).read(filename)
+
         with open(filename) as fd_:
             self.head = np.fromfile(fd_, dtype=header, count=1)[0]
             fd_.seek(4608, 0)
@@ -623,7 +625,11 @@ def main(filename, start_line, end_line):
                     channels[:, :, 4],
                     channels[:, :, 5],
                     sun_zen, sat_zen, sun_azi, sat_azi, rel_azi,
-                    mask, qual_flags, start_line, end_line, reader.get_ch3_switch())
+                    mask, qual_flags, start_line, end_line,
+                    reader.filename,
+                    reader.get_midnight_scanline(),
+                    reader.get_miss_lines(),
+                    reader.get_ch3_switch())
     LOG.info("pygac took: %s", str(datetime.datetime.now() - tic))
 
 if __name__ == "__main__":

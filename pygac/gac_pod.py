@@ -180,6 +180,8 @@ class PODReader(GACReader):
                         }
 
     def read(self, filename):
+        super(PODReader, self).read(filename)
+
         # choose the right header depending on the date
         with open(filename) as fd_:
             head = np.fromfile(fd_, dtype=header0, count=1)[0]
@@ -429,7 +431,10 @@ def main(filename, start_line, end_line):
                     channels[:, :, 3],
                     channels[:, :, 4],
                     sun_zen, sat_zen, sun_azi, sat_azi, rel_azi,
-                    mask, qual_flags, start_line, end_line)
+                    mask, qual_flags, start_line, end_line,
+                    reader.filename,
+                    reader.get_midnight_scanline(),
+                    reader.get_miss_lines())
     LOG.info("pygac took: %s", str(datetime.datetime.now() - tic))
 
 

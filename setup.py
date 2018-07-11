@@ -34,7 +34,7 @@ import imp
 version = imp.load_source('pygac.version', 'pygac/version.py')
 
 setup(name='pygac',
-      version="v0.1.0",
+      version="v0.1.1",
       description='NOAA AVHRR GAC reader and calibration',
       author='Abhay Devasthale',
       author_email='adam.dybbroe@smhi.se',

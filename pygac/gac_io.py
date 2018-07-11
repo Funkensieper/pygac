@@ -73,7 +73,7 @@ def save_gac(satellite_name,
              ref1, ref2, ref3,
              bt3, bt4, bt5,
              sun_zen, sat_zen, sun_azi, sat_azi, rel_azi,
-             mask, qual_flags, start_line, end_line, switch=None):
+             mask, qual_flags, start_line, end_line, gac_file, midnight_scanline, miss_lines, switch=None):
 
  
     start_line = int(start_line)
@@ -179,20 +179,21 @@ def save_gac(satellite_name,
        lats = lats[start_line:end_line+1,:].copy()
        lons = lons[start_line:end_line+1,:].copy()
        qual_flags = qual_flags[start_line:end_line+1,:].copy()
+       xutcs = xutcs[start_line:end_line + 1].copy()
         
 
-    avhrrGAC_io(satellite_name, startdate, enddate, starttime, endtime,
+    avhrrGAC_io(satellite_name, xutcs, startdate, enddate, starttime, endtime,
                 lats, lons, ref1, ref2, ref3, bt3, bt4, bt5,
                 sun_zen, sat_zen, sun_azi, sat_azi, rel_azi, qual_flags, 
 		start_line, end_line, total_number_of_scan_lines,
-                last_scan_line_number, corr)
+                last_scan_line_number, corr, gac_file, midnight_scanline, miss_lines)
 
 
-def avhrrGAC_io(satellite_name, startdate, enddate, starttime, endtime,
+def avhrrGAC_io(satellite_name, xutcs, startdate, enddate, starttime, endtime,
                 arrLat_full, arrLon_full, ref1, ref2, ref3, bt3, bt4, bt5,
                 arrSZA, arrSTZ, arrSAA, arrSTA, arrRAA, qual_flags, 
 		start_line, end_line, total_number_of_scan_lines,
-                last_scan_line_number, corr):
+                last_scan_line_number, corr, gac_file, midnight_scanline, miss_lines):
     import os
 
     # Calculate start and end time in sec1970
@@ -405,6 +406,7 @@ def avhrrGAC_io(satellite_name, startdate, enddate, starttime, endtime,
     g10.attrs["platform"] = np.string_(satellite_name)
     g10.attrs["instrument"] = np.string_("avhrr")
     g10.attrs["orbit_number"] = np.int32(99999)
+    g10.attrs["gac_file"] = np.string_(gac_file)
     g10.attrs["software"] = np.string_("pyGAC")
     g10.attrs["version"] = np.string_("1.0")
 
@@ -566,6 +568,7 @@ def avhrrGAC_io(satellite_name, startdate, enddate, starttime, endtime,
     g9.attrs["platform"] = np.string_(satellite_name)
     g9.attrs["instrument"] = np.string_("avhrr")
     g9.attrs["orbit_number"] = np.int32(99999)
+    g9.attrs["gac_file"] = np.string_(gac_file)
     g9.attrs["software"] = np.string_("pyGAC")
     g9.attrs["version"] = np.string_("1.0")
 
@@ -599,8 +602,16 @@ def avhrrGAC_io(satellite_name, startdate, enddate, starttime, endtime,
     g1.attrs["endtime"] = np.string_(endtime[0:6])
     g1.attrs["startdate"] = np.string_(startdate)
     g1.attrs["enddate"] = np.string_(enddate)
+    g1.attrs["gac_file"] = np.string_(gac_file)
     g1.attrs["total_number_of_data_records"] = total_number_of_scan_lines
-    g1.attrs["last_scan_line_number"] = last_scan_line_number 
+    g1.attrs["last_scan_line_number"] = last_scan_line_number
+
+    g2 = fout.require_group("/ancillary")
+    dset2 = g2.create_dataset("missing_scanlines", dtype='int16', data=miss_lines)
+    dset3 = g2.create_dataset("scanline_timestamps", dtype='int64', data=xutcs.astype('int64'))
+    dset3.attrs['units'] = 'Milliseconds since 1970-01-01 00:00:00 UTC'
+    dset3.attrs['calendar'] = 'standard'
+    g2.attrs["midnight_scanline"] = np.string_(midnight_scanline)
 
     fout.close()
 
